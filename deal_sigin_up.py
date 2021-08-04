@@ -1,14 +1,15 @@
 from constant import *
-import pymysql
 
 
-def deal_sign_up(client, database: pymysql):
-    # 向客户端发送处理数据
-    client.send(ACCESS_SIGN_UP_SIGNAL.encode('utf-8'))
-    # 接收来自客户端的数据
-    data = client.recv(1024).decode('utf-8')
-    # 将数据处理
-    user_data = data.split(USER_SIGN_UP_SEPARATOR)
+def deal_sign_up(client, database, body):
+    # 切割得到数据
+    user_data = body.split(DATA_SEPARATOR)
+
+    if user_data is None or len(user_data) < 3:
+        # 说明数据传输有误
+        client.send(DATA_ILLEGAL_ERROR.encode('utf-8'))
+        return
+
     user_name = user_data[0]
     user_password = user_data[1]
     user_secure_problem = user_data[2]
@@ -16,9 +17,15 @@ def deal_sign_up(client, database: pymysql):
 
     if user_name == "null" and user_password == "null" or user_secure_problem == "null" or user_secure_answer == "null":
         # 说明数据传输有误
-        client.send(SIGN_UP_TRANSLATE_ERROR.encode('utf-8'))
-        client.close()
+        client.send(DATA_ILLEGAL_ERROR.encode('utf-8'))
         return
+
+    print()
+    print('+', '-' * 50, '+', sep='')
+    print('|', ' 有用户注册')
+    print('|', " 用户名 :", user_name)
+    print('+', '-' * 50, '+', sep='')
+    print()
 
     # 连接数据库光标
     cursor = database.cursor()
@@ -28,9 +35,8 @@ def deal_sign_up(client, database: pymysql):
         user_data_tuple = cursor.fetchone()
         if user_data_tuple[1] == user_name:
             # 发送存在相同用户名错误
-            client.send(SIGN_UP_EXIST_SAME_NAME_ERROR.encode('utf-8'))
+            client.send(SIGN_UP_EXIST_SAME_USER_NAME_ERROR.encode('utf-8'))
             cursor.close()
-            client.close()
             return
 
     # 插入数据
@@ -39,7 +45,5 @@ def deal_sign_up(client, database: pymysql):
     database.commit()
     # 关闭光标
     cursor.close()
-
-    client.send(SIGN_UP_ANSWER_SUCCESS_SIGNAL.encode('utf-8'))
-
-    client.close()
+    # 表明成功
+    client.send(SIGN_UP_SUCCESS.encode('utf-8'))
