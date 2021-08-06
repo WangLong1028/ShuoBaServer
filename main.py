@@ -50,6 +50,8 @@ def deal_data(client, database):
             # 此时是聊天客户端登录请求
             # 添加该客户端
             online_clients.append(client)
+            # 向客户端发送允许连接消息
+            client.send(ACCESS_CHAT.encode('utf-8'))
             print("有用户接入")
         elif header == REQUEST_HEADER_CHAT_SEND:
             # 此时是发送信息请求
