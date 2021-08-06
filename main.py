@@ -8,6 +8,8 @@ from deal_login import *
 from deal_chat_send import *
 from deal_request_user import *
 
+from threading import Thread
+
 # 在线的客户端
 online_clients = list()
 
@@ -19,6 +21,7 @@ def deal_data(client, database):
         try:
             data_b = client.recv(1024)
             data = data_b.decode('utf-8')
+            print(data)
         except Exception:
             pass
         # 检查数据
@@ -69,19 +72,29 @@ def start_server():
     server.bind(("", 1028))
     server.listen(128)
 
+    g_conn_pool = []  # 连接池
+
     while True:
         client, addr = server.accept()
+
+        # 加入连接池
+        g_conn_pool.append(client)
+        # 给每个客户端创建一个独立的线程进行管理
+        thread = Thread(target=deal_data, args=(client, database))
+        # 设置成守护线程
+        thread.setDaemon(True)
+        thread.start()
         # try:
         #     deal_thread = threading.Thread(target=deal_data, args=(client, database))
         #     deal_thread.start()
         # except Exception as e:
         #     print(e)
 
-        try:
-            g1 = gevent.spawn(deal_data, client, database)
-            g1.join()
-        except Exception as e:
-            print(e)
+        # try:
+        #     g1 = gevent.spawn(deal_data, client, database)
+        #     g1.join()
+        # except Exception as e:
+        #     print(e)
 
 
 if __name__ == '__main__':
