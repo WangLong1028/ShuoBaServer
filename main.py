@@ -26,6 +26,7 @@ def deal_data(client, database):
             client.close()
             if online_clients.__contains__(client):
                 online_clients.remove(client)
+                print('有客户端断开连接')
             return
 
         header_and_body = data.split(REQUEST_SEPARATOR)
@@ -37,9 +38,11 @@ def deal_data(client, database):
 
         if header == REQUEST_HEADER_SIGN_UP:
             # 此时是注册请求
+            client.settimeout(2)
             deal_sign_up(client, database, body)
         elif header == REQUEST_HEADER_LOGIN:
             # 此时是登录请求
+            client.settimeout(2)
             deal_login(client, database, body)
         elif header == REQUEST_HEADER_CHAT_CLIENT_LOGIN:
             # 此时是聊天客户端登录请求
@@ -51,7 +54,7 @@ def deal_data(client, database):
             deal_chat_send(client, database, body, online_clients)
         elif header == REQUEST_HEADER_REQUEST_USER:
             # 此时是申请用户请求
-            # deal_chat_receive(client, database, body)
+            client.settimeout(2)
             deaL_request_user(client, database, body)
         else:
             pass
