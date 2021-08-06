@@ -21,7 +21,6 @@ def deal_data(client, database):
         try:
             data_b = client.recv(1024)
             data = data_b.decode('utf-8')
-            print(data)
         except Exception:
             pass
         # 检查数据
