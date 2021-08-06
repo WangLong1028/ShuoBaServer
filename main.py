@@ -6,7 +6,7 @@ import gevent
 from deal_sigin_up import *
 from deal_login import *
 from deal_chat_send import *
-from deal_chat_receive import *
+from deal_request_user import *
 
 # 在线的客户端
 online_clients = list()
@@ -19,7 +19,7 @@ def deal_data(client, database):
         try:
             data_b = client.recv(1024)
             data = data_b.decode('utf-8')
-        except Exception as e:
+        except Exception:
             pass
         # 检查数据
         if not data:
@@ -49,10 +49,10 @@ def deal_data(client, database):
         elif header == REQUEST_HEADER_CHAT_SEND:
             # 此时是发送信息请求
             deal_chat_send(client, database, body, online_clients)
-        elif header == REQUEST_HEADER_CHAT_RECEIVE:
-            # 此时是接收请求
+        elif header == REQUEST_HEADER_REQUEST_USER:
+            # 此时是申请用户请求
             # deal_chat_receive(client, database, body)
-            client.send(b"RECEIVE")
+            deaL_request_user(client, database, body)
         else:
             pass
 

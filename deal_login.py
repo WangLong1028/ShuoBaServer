@@ -15,7 +15,7 @@ def deal_login(client, database, body):
         login_with_password(client, database, user_data)
     else:
         # 用安全问题登录
-        login_with_secure(client, database, user_data)
+        login_with_secure(database, user_data)
 
 
 def login_with_password(client, database, user_data):
@@ -38,7 +38,17 @@ def login_with_password(client, database, user_data):
         if user_data_tuple[1] == user_name:
             if user_data_tuple[2] == user_password:
                 # 登陆成功
+                # user_id = str(user_data_tuple[0])
+                # user_secure_problem = str(user_data_tuple[3])
+                # user_secure_answer = str(user_data_tuple[4])
+                # user_headshot = str(user_data_tuple[5])
+
                 client.send(LOGIN_SUCCESS.encode('utf-8'))
+
+                # user_data_send = user_id + DATA_SEPARATOR + user_name + DATA_SEPARATOR
+                # user_data_send += user_password + DATA_SEPARATOR + user_secure_problem + DATA_SEPARATOR
+                # user_data_send += user_secure_answer + DATA_SEPARATOR + user_headshot
+                # client.send(user_data_send.encode('utf-8'))
                 cursor.close()
                 return
             else:
@@ -52,5 +62,5 @@ def login_with_password(client, database, user_data):
     cursor.close()
 
 
-def login_with_secure(client, database, user_data):
+def login_with_secure(database, user_data):
     pass

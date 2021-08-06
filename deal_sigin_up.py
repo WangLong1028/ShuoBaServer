@@ -5,7 +5,7 @@ def deal_sign_up(client, database, body):
     # 切割得到数据
     user_data = body.split(DATA_SEPARATOR)
 
-    if user_data is None or len(user_data) < 3:
+    if user_data is None or len(user_data) < 4:
         # 说明数据传输有误
         client.send(DATA_ILLEGAL_ERROR.encode('utf-8'))
         return
@@ -14,6 +14,7 @@ def deal_sign_up(client, database, body):
     user_password = user_data[1]
     user_secure_problem = user_data[2]
     user_secure_answer = user_data[3]
+    user_headshot = int(user_data[4])
 
     if user_name == "null" and user_password == "null" or user_secure_problem == "null" or user_secure_answer == "null":
         # 说明数据传输有误
@@ -40,8 +41,8 @@ def deal_sign_up(client, database, body):
             return
 
     # 插入数据
-    cursor.execute('insert into ' + TABLE_NAME_USER + ' values (null, "%s", "%s", "%s", "%s")' % (
-        user_name, user_password, user_secure_problem, user_secure_answer))
+    cursor.execute('insert into ' + TABLE_NAME_USER + ' values (null, "%s", "%s", "%s", "%s", %d)' % (
+        user_name, user_password, user_secure_problem, user_secure_answer, user_headshot))
     database.commit()
     # 关闭光标
     cursor.close()
