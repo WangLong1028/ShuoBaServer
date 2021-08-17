@@ -40,7 +40,7 @@ def deal_chat_send(client, database, body, online_clients):
             cursor.close()
             client.send(add_prefix(CHAT_SEND_SUCCESS).encode('utf-8'))
             # 将数据发送给客户端
-            send_to_clients(chat_data_content_text, chat_data_user_id, database, online_clients)
+            send_to_clients(chat_data_user_id, database, online_clients)
             return
 
     # 该用户不存在

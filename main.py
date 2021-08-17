@@ -1,12 +1,12 @@
 from socket import *
 
 import pymysql
-import gevent
 
 from deal_sigin_up import *
 from deal_login import *
 from deal_chat_send import *
 from deal_request_user import *
+from deal_request_history import *
 
 from threading import Thread
 
@@ -60,6 +60,9 @@ def deal_data(client, database):
             # 此时是申请用户请求
             client.settimeout(2)
             deaL_request_user(client, database, body)
+        elif header == REQUEST_HEADER_REQUEST_HISTORY:
+            # 此时是申请历史消息
+            deal_request_history(client, database, body)
         else:
             pass
 
