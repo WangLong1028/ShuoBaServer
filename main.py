@@ -7,6 +7,8 @@ from deal_login import *
 from deal_chat_send import *
 from deal_request_user import *
 from deal_request_history import *
+from deal_headshot_pic_post import *
+from deal_file_request import *
 
 from threading import Thread
 
@@ -63,8 +65,12 @@ def deal_data(client, database):
         elif header == REQUEST_HEADER_REQUEST_HISTORY:
             # 此时是申请历史消息
             deal_request_history(client, database, body)
+        elif header == REQUEST_HEADER_POST_HEADSHOT_PIC:
+            # 此时是上传头像图片请求
+            deal_headshot_pic_post(client, database)
         else:
-            pass
+            # 此时是发送文件
+            deal_file_request(client, header)
 
 
 def start_server():
