@@ -2,9 +2,15 @@ import re
 import os
 
 
-def deal_file_request_headshot(client, user_id):
+def deal_file_request_headshot(user_id):
     for file_name in os.listdir('./headshot/'):
         if file_name.split('.')[0] == user_id:
+            return file_name
+
+
+def deal_file_request_chat_img(chat_id):
+    for file_name in os.listdir('./chats/'):
+        if file_name.split('.')[0] == chat_id:
             return file_name
 
 
@@ -14,10 +20,14 @@ def deal_file_request(client, header):
         file_name = None
         if data_re.group(1)[0:8] == 'headshot':
             # 处理头像请求
-            file_name = deal_file_request_headshot(client, data_re.group(1)[9:])
+            file_name = deal_file_request_headshot(data_re.group(1)[9:])
             if file_name:
                 file_name = './headshot/' + file_name
-                print(file_name)
+        # if data_re.group(1)[0:5] == 'chats':
+        #     # 处理聊天图片请求
+        #     file_name = deal_file_request_chat_img(data_re.group(1)[6:])
+        #     if file_name:
+        #         file_name = './chats/' + file_name
         else:
             file_name = './' + data_re.group(1)
 
@@ -35,6 +45,7 @@ def deal_file_request(client, header):
             header = 'HTTP/1.1 200 Ok\r\n'
             header += 'Accept-Ranges: bytes\r\n'
             header += 'Cache-Control: max-age=315360000\r\n'
+            header += 'access-control-allow-origin: *\r\n'
             header += f'Content-Length: {len(data):d}\r\nServer: Apache\r\n\r\n'
             client.send(header.encode('utf-8'))
             client.send(data)

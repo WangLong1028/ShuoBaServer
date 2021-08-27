@@ -15,13 +15,16 @@ def deal_chat_send(client, database, body, online_clients):
     chat_data = body.split(DATA_SEPARATOR)
 
     # 再次检查数据
-    if len(chat_data) != 2:
+    if len(chat_data) < 2:
         # 数据不合法
         client.send(add_prefix(DATA_ILLEGAL_ERROR).encode('utf-8'))
         return
 
     chat_data_content_text = chat_data[0]
     chat_data_user_id = int(chat_data[1])
+    chat_img = None
+    if len(chat_data) == 3:
+        chat_img = chat_data[2]
 
     # 检查用户合法性
     cursor = database.cursor()
@@ -34,11 +37,19 @@ def deal_chat_send(client, database, body, online_clients):
             # 该用户存在
             cursor.close()
             cursor = database.cursor()
-            cursor.execute(('insert into ' + TABLE_NAME_CHAT + ' values (null, "%s", %d, %s)') % (
-                chat_data_content_text, chat_data_user_id, 'null'))
+            if chat_img is None:
+                cursor.execute(('insert into ' + TABLE_NAME_CHAT + ' values (null, "%s", %d, null)') % (
+                    chat_data_content_text, chat_data_user_id))
+            else:
+                cursor.execute(('insert into ' + TABLE_NAME_CHAT + ' values (null, "%s", %d, "%s")') % (
+                    chat_data_content_text, chat_data_user_id, chat_img))
             database.commit()
+
+            cursor.execute('select max(id) from ' + TABLE_NAME_CHAT)
+            cur_id = str(cursor.fetchone()[0])
+
             cursor.close()
-            client.send(add_prefix(CHAT_SEND_SUCCESS).encode('utf-8'))
+            client.send(add_prefix(CHAT_SEND_SUCCESS + '#' + cur_id).encode('utf-8'))
             # 将数据发送给客户端
             send_to_clients(chat_data_user_id, database, online_clients)
             return
