@@ -9,6 +9,7 @@ from deal_request_user import *
 from deal_request_history import *
 from deal_pic_post import *
 from deal_file_request import *
+from deal_chat_operate import *
 
 from threading import Thread
 
@@ -62,6 +63,12 @@ def deal_data(client, database):
             # 此时是申请用户请求
             client.settimeout(2)
             deaL_request_user(client, database, body)
+        elif header == REQUEST_HEADER_CHAT_LIKE:
+            # 此时是点赞请求
+            deal_like_chat(client, database, body)
+        elif header == REQUEST_HEADER_CHAT_UNLIKE:
+            # 此时是收回点赞请求
+            deal_unlike_chat(client, database, body)
         elif header == REQUEST_HEADER_REQUEST_HISTORY:
             # 此时是申请历史消息
             deal_request_history(client, database, body)
@@ -112,3 +119,12 @@ def start_server():
 
 if __name__ == '__main__':
     start_server()
+    # chat_bean = ChatBean()
+    # chat_bean.parse_json(
+    #     '{"belongUser":{"id":0,"userName":"唯一的大呆子"},"chatPicImg":"123.jpg","contentText":"测试","id":0,"picPath":"D:/Test/test.jpg"}')
+    # new_chat_bean = ChatBean()
+    # print(chat_bean.to_json())
+    # new_chat_bean.parse_json(chat_bean.to_json())
+    # new_user_bean: UserBean = new_chat_bean.chat_bean_data[JSON_KEY_BELONG_USER]
+    # print(new_user_bean.user_bean_data[JSON_KEY_USER_NAME])
+    # pass

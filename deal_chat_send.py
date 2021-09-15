@@ -1,4 +1,6 @@
 from constant import *
+from beans import *
+
 from send_msg_to_clients import *
 
 
@@ -12,19 +14,13 @@ def deal_chat_send(client, database, body, online_clients):
         client.send(add_prefix(CONNECT_ERROR).encode('utf-8'))
         return
 
-    chat_data = body.split(DATA_SEPARATOR)
+    chat_bean: ChatBean = ChatBean()
+    chat_bean.parse_json(body)
+    user_bean: UserBean = chat_bean.get_chat_belong_user()
 
-    # 再次检查数据
-    if len(chat_data) < 2:
-        # 数据不合法
-        client.send(add_prefix(DATA_ILLEGAL_ERROR).encode('utf-8'))
-        return
-
-    chat_data_content_text = chat_data[0]
-    chat_data_user_id = int(chat_data[1])
-    chat_img = None
-    if len(chat_data) == 3:
-        chat_img = chat_data[2]
+    chat_data_content_text = chat_bean.get_chat_content_text()
+    chat_data_user_id = user_bean.get_user_id()
+    chat_img = chat_bean.get_chat_img()
 
     # 检查用户合法性
     cursor = database.cursor()
@@ -38,10 +34,10 @@ def deal_chat_send(client, database, body, online_clients):
             cursor.close()
             cursor = database.cursor()
             if chat_img is None:
-                cursor.execute(('insert into ' + TABLE_NAME_CHAT + ' values (null, "%s", %d, null)') % (
+                cursor.execute(('insert into ' + TABLE_NAME_CHAT + ' values (null, "%s", %d, null, 0)') % (
                     chat_data_content_text, chat_data_user_id))
             else:
-                cursor.execute(('insert into ' + TABLE_NAME_CHAT + ' values (null, "%s", %d, "%s")') % (
+                cursor.execute(('insert into ' + TABLE_NAME_CHAT + ' values (null, "%s", %d, "%s", 0)') % (
                     chat_data_content_text, chat_data_user_id, chat_img))
             database.commit()
 

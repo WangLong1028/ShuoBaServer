@@ -1,26 +1,34 @@
-from constant import *
+from beans import *
 
 
 def send_to_clients(user_id, database, online_clients):
     cursor = database.cursor()
     cursor.execute('select * from user where id= %d ' % user_id)
+
     user_info_tuple = cursor.fetchone()
     user_name = user_info_tuple[1]
+    user_bean: UserBean = UserBean()
+    user_bean.set_user_id(user_id)
+    user_bean.set_user_name(user_name)
 
-    cursor.execute('select * from %s where id = (select max(id) from %s)' % (TABLE_NAME_CHAT, TABLE_NAME_CHAT))
-    chat_tuple = cursor.fetchone()
-    chat_id = str(chat_tuple[0])
-    chat_content_text = chat_tuple[1]
-    chat_img = None if len(chat_tuple) != 4 else chat_tuple[3]
+    chat_bean: ChatBean = ChatBean()
+    cursor.execute('select id from %s where id = (select max(id) from %s)' % (TABLE_NAME_CHAT, TABLE_NAME_CHAT))
+    chat_id = int(cursor.fetchone()[0])
+    cursor.execute('select content from %s where id = (select max(id) from %s)' % (TABLE_NAME_CHAT, TABLE_NAME_CHAT))
+    chat_content_text = cursor.fetchone()[0]
+    cursor.execute('select img from %s where id = (select max(id) from %s)' % (TABLE_NAME_CHAT, TABLE_NAME_CHAT))
+    chat_img_tuple = cursor.fetchone()
+    chat_img = chat_img_tuple[0] if len(chat_img_tuple) == 1 else None
+    cursor.execute('select like_count from %s where id = (select max(id) from %s)' % (TABLE_NAME_CHAT, TABLE_NAME_CHAT))
+    chat_like_count = int(cursor.fetchone()[0])
 
-    cursor.close()
+    chat_bean.set_chat_id(chat_id)
+    chat_bean.set_chat_content_text(chat_content_text)
+    chat_bean.set_chat_belong_user(user_bean)
+    chat_bean.set_chat_img(chat_img)
+    chat_bean.set_like_count(chat_like_count)
 
-    chat_bean_data = chat_id + CHAT_RECEIVE_CHAT_BEAN_ATTRIBUTE_SEPARATOR
-    chat_bean_data += chat_content_text + CHAT_RECEIVE_CHAT_BEAN_ATTRIBUTE_SEPARATOR
-    chat_bean_data += str(user_id) + CHAT_RECEIVE_CHAT_BEAN_ATTRIBUTE_SEPARATOR + user_name
-    if chat_img:
-        chat_bean_data += CHAT_RECEIVE_CHAT_BEAN_ATTRIBUTE_SEPARATOR + chat_img
-
+    chat_bean_data = chat_bean.to_json()
     send_data = PREFIX_MODE_RECEIVE + CHAT_MODE_SEPARATOR + chat_bean_data
 
     for client in online_clients:

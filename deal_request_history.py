@@ -1,3 +1,4 @@
+from beans import *
 from constant import *
 
 
@@ -16,24 +17,43 @@ def deal_request_history(client, database, body):
         chat_id = cursor.fetchone()[0] + 1
 
     lines = cursor.execute('select * from %s where id < %d order by id desc limit 5' % (TABLE_NAME_CHAT, chat_id))
+    chat_id_list = list()
 
-    chat_data_dict = dict()
-    chat_data_img_dict = dict()
     for i in range(lines):
-        chat_tuple = cursor.fetchone()
-        key_chat_data = wrap_chat_data(chat_tuple)
-        chat_data_dict[key_chat_data] = chat_tuple[2]
-        chat_data_img_dict[key_chat_data] = None if len(chat_tuple) < 4 else chat_tuple[3]
+        chat_id_list.append(int(cursor.fetchone()[0]))
 
-    chat_data_send = PREFIX_MODE_GET_HISTORY + CHAT_MODE_SEPARATOR
-    for key in chat_data_dict.keys().__reversed__():
-        cursor.execute('select * from %s where id = %d' % (TABLE_NAME_USER, chat_data_dict[key]))
-        user_data_tuple = cursor.fetchone()
-        chat_data_send += key + str(user_data_tuple[0]) + CHAT_RECEIVE_CHAT_BEAN_ATTRIBUTE_SEPARATOR + user_data_tuple[1]
-        if chat_data_img_dict[key]:
-            chat_data_send += CHAT_RECEIVE_CHAT_BEAN_ATTRIBUTE_SEPARATOR + chat_data_img_dict[key]
-        chat_data_send += CHAT_BEAN_SEPARATOR
+    new_chat_id_list = chat_id_list.__reversed__()
+    send_data = "["
 
+    for cur_chat_id in new_chat_id_list:
+        chat_bean: ChatBean = ChatBean()
+        user_bean: UserBean = UserBean()
+
+        cursor.execute('select content from %s where id = %d' % (TABLE_NAME_CHAT, cur_chat_id))
+        chat_content_text = cursor.fetchone()[0]
+        cursor.execute('select user_id from %s where id = %d' % (TABLE_NAME_CHAT, cur_chat_id))
+        user_id = int(cursor.fetchone()[0])
+        cursor.execute('select img from %s where id = %d' % (TABLE_NAME_CHAT, cur_chat_id))
+        chat_img_tuple = cursor.fetchone()
+        chat_img = chat_img_tuple[0] if len(chat_img_tuple) == 1 else None
+        cursor.execute('select like_count from %s where id = %d' % (TABLE_NAME_CHAT, cur_chat_id))
+        chat_like_count = int(cursor.fetchone()[0])
+        cursor.execute('select * from %s where id = %d' % (TABLE_NAME_USER, user_id))
+        user_info_tuple = cursor.fetchone()
+
+        user_bean.set_user_id(user_id)
+        user_bean.set_user_name(user_info_tuple[1])
+
+        chat_bean.set_chat_id(cur_chat_id)
+        chat_bean.set_chat_content_text(chat_content_text)
+        chat_bean.set_chat_belong_user(user_bean)
+        chat_bean.set_chat_img(chat_img)
+        chat_bean.set_like_count(chat_like_count)
+
+        send_data += chat_bean.to_json() + ","
+
+    send_data += "]"
+
+    chat_data_send = PREFIX_MODE_GET_HISTORY + CHAT_MODE_SEPARATOR + send_data
     client.send(chat_data_send.encode('utf-8'))
-
     cursor.close()
