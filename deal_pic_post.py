@@ -68,3 +68,27 @@ def deal_headshot_pic_post(client, database):
     file_data = pic_info[1]
     write_file(client, file_name, 'headshot', file_data)
     client.close()
+
+
+def deal_comm_pic_post(client, database, body):
+    file_length = body.split('&&')[1]
+    file_suffix = body.split('&&')[0]
+
+    file_num = 0
+    for cur_file_name in os.listdir('comments'):
+        cur_num = int(cur_file_name.split('.')[0])
+        if cur_num > file_num:
+            file_num = cur_num
+    file_num += 1
+    client.send((str(file_num) + '.' + file_suffix).encode('utf-8'))
+
+    # 接收文件
+    data = client.recv(1024)
+    file_data = b''
+    while data is not None:
+        file_data += data
+        if len(file_data) >= int(file_length):
+            break
+        data = client.recv(1024)
+
+    write_file(client, str(file_num) + "." + file_suffix, 'comments', file_data)

@@ -8,7 +8,7 @@ def wrap_chat_data(chat_tuple):
     return chat_bean_data
 
 
-def deal_request_history(client, database, body):
+def deal_request_history_chat(client, database, body):
     chat_id = int(body)
     cursor = database.cursor()
 
@@ -56,4 +56,55 @@ def deal_request_history(client, database, body):
 
     chat_data_send = PREFIX_MODE_GET_HISTORY + CHAT_MODE_SEPARATOR + send_data
     client.send(chat_data_send.encode('utf-8'))
+    cursor.close()
+
+
+def deal_request_history_comm(client, database, body):
+    info = body.split('&&')
+    chat_id: int = int(info[0])
+    comm_id: int = int(info[1])
+    cursor = database.cursor()
+
+    if comm_id == -1:
+        cursor.execute('select max(id) from ' + TABLE_NAME_COMM)
+        comm_id = cursor.fetchone()[0] + 1
+
+    lines = cursor.execute('select * from %s where id < %d and chat_id = %d order by id desc limit 5' % (TABLE_NAME_COMM, comm_id, chat_id))
+    comm_id_list = list()
+
+    for i in range(lines):
+        comm_id_list.append(int(cursor.fetchone()[0]))
+
+    send_data = "["
+
+    for cur_comm_id in comm_id_list:
+        comm_bean: CommentBean = CommentBean()
+        user_bean: UserBean = UserBean()
+
+        cursor.execute('select content from %s where id = %d' % (TABLE_NAME_COMM, cur_comm_id))
+        comm_content_text = cursor.fetchone()[0]
+        cursor.execute('select user_id from %s where id = %d' % (TABLE_NAME_COMM, cur_comm_id))
+        user_id = int(cursor.fetchone()[0])
+        cursor.execute('select comm_img from %s where id = %d' % (TABLE_NAME_COMM, cur_comm_id))
+        comm_img_tuple = cursor.fetchone()
+        comm_img = comm_img_tuple[0] if len(comm_img_tuple) == 1 else None
+        cursor.execute('select chat_id from %s where id = %d' % (TABLE_NAME_COMM, cur_comm_id))
+        chat_id = int(cursor.fetchone()[0])
+        cursor.execute('select * from %s where id = %d' % (TABLE_NAME_USER, user_id))
+        user_info_tuple = cursor.fetchone()
+
+        user_bean.set_user_id(user_id)
+        user_bean.set_user_name(user_info_tuple[1])
+
+        comm_bean.set_id(int(cur_comm_id))
+        comm_bean.set_comm_content(comm_content_text)
+        comm_bean.set_comm_chat_id(chat_id)
+        comm_bean.set_comm_user(user_bean)
+        comm_bean.set_comm_img(comm_img)
+
+        send_data += comm_bean.to_json() + ","
+
+    send_data += "]"
+
+    client.send(send_data.encode('utf-8'))
     cursor.close()

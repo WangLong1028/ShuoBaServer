@@ -85,3 +85,62 @@ class ChatBean:
 
     def set_like_count(self, like_count):
         self.chat_bean_data[JSON_KEY_CHAT_LIKE_COUNT] = like_count
+
+
+class CommentBean:
+
+    def __init__(self):
+        self.comm_bean_data = dict()
+        self.comm_bean_data[JSON_KEY_COMM_IMG] = None
+
+    def parse_json(self, json_data):
+        data: dict = json.loads(json_data)
+        for key in data.keys():
+            if key == JSON_KEY_COMM_BELONG_USER:
+                user_bean = UserBean()
+                user_bean.parse_dict(data[key])
+                self.comm_bean_data[key] = user_bean
+                continue
+            self.comm_bean_data[key] = data[key]
+
+    def to_json(self):
+        json_dict: dict = dict()
+        for key in self.comm_bean_data.keys():
+            if key == JSON_KEY_COMM_BELONG_USER:
+                json_dict[key] = self.comm_bean_data[key].user_bean_data
+                continue
+            json_dict[key] = self.comm_bean_data[key]
+        return json.dumps(json_dict, ensure_ascii=False)
+
+    def get_id(self):
+        return self.comm_bean_data[JSON_KEY_COMM_ID]
+
+    def get_comm_content(self):
+        return self.comm_bean_data[JSON_KEY_COMM_CONTENT_TEXT]
+
+    def get_comm_user(self):
+        return self.comm_bean_data[JSON_KEY_COMM_BELONG_USER]
+
+    def get_chat_id(self):
+        return self.comm_bean_data[JSON_KEY_COMM_CHAT_ID]
+
+    def get_comm_img(self):
+        return self.comm_bean_data[JSON_KEY_COMM_IMG]
+
+    def set_comm_img(self, file_name):
+        self.comm_bean_data[JSON_KEY_COMM_IMG] = file_name
+
+    def set_id(self, comm_id):
+        self.comm_bean_data[JSON_KEY_COMM_ID] = comm_id
+
+    def set_comm_content(self, comm_content):
+        self.comm_bean_data[JSON_KEY_COMM_CONTENT_TEXT] = comm_content
+
+    def set_comm_user(self, belong_user):
+        self.comm_bean_data[JSON_KEY_COMM_BELONG_USER] = belong_user
+
+    def set_comm_chat_id(self, chat_id):
+        self.comm_bean_data[JSON_KEY_COMM_CHAT_ID] = chat_id
+
+    def set_comm_img(self, comm_img):
+        self.comm_bean_data[JSON_KEY_COMM_IMG] = comm_img

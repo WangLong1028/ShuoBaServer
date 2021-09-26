@@ -10,6 +10,7 @@ from deal_request_history import *
 from deal_pic_post import *
 from deal_file_request import *
 from deal_chat_operate import *
+from deal_comm_send import *
 
 from threading import Thread
 
@@ -17,7 +18,7 @@ from threading import Thread
 online_clients = list()
 
 
-def deal_data(client, database):
+def deal_data(client: socket, database):
     global online_clients
     while True:
         data = None
@@ -25,7 +26,8 @@ def deal_data(client, database):
             data_b = client.recv(1024)
             data = data_b.decode('utf-8')
         except Exception:
-            pass
+            client.close()
+            return
         # 检查数据
         if not data:
             client.close()
@@ -71,13 +73,22 @@ def deal_data(client, database):
             deal_unlike_chat(client, database, body)
         elif header == REQUEST_HEADER_REQUEST_HISTORY:
             # 此时是申请历史消息
-            deal_request_history(client, database, body)
+            deal_request_history_chat(client, database, body)
         elif header == REQUEST_HEADER_POST_HEADSHOT_PIC:
             # 此时是上传头像图片请求
             deal_headshot_pic_post(client, database)
         elif header == REQUEST_HEADER_POST_CHAT_PIC:
             # 此时是上传聊天图片请求
             deal_chat_pic_post(client, database)
+        elif header == REQUEST_HEADER_POST_COMM_PIC:
+            # 此时是上传评论图片请求
+            deal_comm_pic_post(client, database, body)
+        elif header == REQUEST_HEADER_SEND_COMMENT:
+            # 此时是发表评论请求
+            deal_comm_send(client, database, body)
+        elif header == REQUEST_HEADER_REQUEST_COMMENT:
+            # 此时是获取评论请求
+            deal_request_history_comm(client, database, body)
         else:
             # 此时是发送文件
             deal_file_request(client, header)
