@@ -71,6 +71,9 @@ class ChatBean:
     def get_like_count(self):
         return self.chat_bean_data[JSON_KEY_CHAT_LIKE_COUNT]
 
+    def get_comment_count(self):
+        return self.chat_bean_data[JSON_KEY_CHAT_COMMENT_COUNT]
+
     def set_chat_id(self, chat_id):
         self.chat_bean_data[JSON_KEY_CHAT_ID] = chat_id
 
@@ -85,6 +88,9 @@ class ChatBean:
 
     def set_like_count(self, like_count):
         self.chat_bean_data[JSON_KEY_CHAT_LIKE_COUNT] = like_count
+
+    def set_comment_count(self, comment_count):
+        self.chat_bean_data[JSON_KEY_CHAT_COMMENT_COUNT] = comment_count
 
 
 class CommentBean:

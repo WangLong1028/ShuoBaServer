@@ -38,6 +38,7 @@ def deal_request_history_chat(client, database, body):
         chat_img = chat_img_tuple[0] if len(chat_img_tuple) == 1 else None
         cursor.execute('select like_count from %s where id = %d' % (TABLE_NAME_CHAT, cur_chat_id))
         chat_like_count = int(cursor.fetchone()[0])
+        comment_count = cursor.execute('select * from %s where chat_id = %d' % (TABLE_NAME_COMM, cur_chat_id))
         cursor.execute('select * from %s where id = %d' % (TABLE_NAME_USER, user_id))
         user_info_tuple = cursor.fetchone()
 
@@ -49,6 +50,7 @@ def deal_request_history_chat(client, database, body):
         chat_bean.set_chat_belong_user(user_bean)
         chat_bean.set_chat_img(chat_img)
         chat_bean.set_like_count(chat_like_count)
+        chat_bean.set_comment_count(int(comment_count))
 
         send_data += chat_bean.to_json() + ","
 
@@ -66,10 +68,17 @@ def deal_request_history_comm(client, database, body):
     cursor = database.cursor()
 
     if comm_id == -1:
-        cursor.execute('select max(id) from ' + TABLE_NAME_COMM)
-        comm_id = cursor.fetchone()[0] + 1
+        cursor.execute('select min(id) from ' + TABLE_NAME_COMM)
+        max_id_tuple = cursor.fetchone()
+        if max_id_tuple:
+            comm_id = max_id_tuple[0] - 1
+        else:
+            client.send(b'')
+            cursor.close()
+            return
 
-    lines = cursor.execute('select * from %s where id < %d and chat_id = %d order by id desc limit 5' % (TABLE_NAME_COMM, comm_id, chat_id))
+    lines = cursor.execute(
+        'select * from %s where id > %d and chat_id = %d limit 5' % (TABLE_NAME_COMM, comm_id, chat_id))
     comm_id_list = list()
 
     for i in range(lines):
