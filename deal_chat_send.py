@@ -21,6 +21,7 @@ def deal_chat_send(client, database, body, online_clients):
     chat_data_content_text = chat_bean.get_chat_content_text()
     chat_data_user_id = user_bean.get_user_id()
     chat_img = chat_bean.get_chat_img()
+    chat_type = chat_bean.get_type_bean()
 
     # 检查用户合法性
     cursor = database.cursor()
@@ -34,11 +35,11 @@ def deal_chat_send(client, database, body, online_clients):
             cursor.close()
             cursor = database.cursor()
             if chat_img is None:
-                cursor.execute(('insert into ' + TABLE_NAME_CHAT + ' values (null, "%s", %d, null, 0)') % (
-                    chat_data_content_text, chat_data_user_id))
+                cursor.execute(('insert into ' + TABLE_NAME_CHAT + ' values (null, "%s", %d, null, 0, %d)') % (
+                    chat_data_content_text, chat_data_user_id, chat_type.get_type_id()))
             else:
-                cursor.execute(('insert into ' + TABLE_NAME_CHAT + ' values (null, "%s", %d, "%s", 0)') % (
-                    chat_data_content_text, chat_data_user_id, chat_img))
+                cursor.execute(('insert into ' + TABLE_NAME_CHAT + ' values (null, "%s", %d, "%s", 0, %d)') % (
+                    chat_data_content_text, chat_data_user_id, chat_img, chat_type.get_type_id()))
             database.commit()
 
             cursor.execute('select max(id) from ' + TABLE_NAME_CHAT)

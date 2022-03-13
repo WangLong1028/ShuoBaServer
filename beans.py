@@ -31,11 +31,44 @@ class UserBean:
         self.user_bean_data[JSON_KEY_USER_NAME] = user_name
 
 
+class TypeBean:
+
+    def __init__(self):
+        self.type_bean_data = dict()
+        self.type_bean_data.setdefault(JSON_KEY_TYPE_ID, 0)
+        self.type_bean_data.setdefault(JSON_KEY_TYPE_NAME, '漂流海')
+
+    def parse_json(self, json_data):
+        data: dict = json.loads(json_data)
+        for key in data.keys():
+            self.type_bean_data[key] = data[key]
+
+    def parse_dict(self, dict_data: dict):
+        for key in dict_data.keys():
+            self.type_bean_data[key] = dict_data[key]
+
+    def to_json(self):
+        return json.dumps(self.type_bean_data, ensure_ascii=False)
+
+    def get_type_id(self):
+        return self.type_bean_data[JSON_KEY_TYPE_ID]
+
+    def get_type_name(self):
+        return self.type_bean_data[JSON_KEY_TYPE_NAME]
+
+    def set_type_id(self, type_id):
+        self.type_bean_data[JSON_KEY_TYPE_ID] = int(type_id)
+
+    def set_type_name(self, type_name):
+        self.type_bean_data[JSON_KEY_TYPE_NAME] = str(type_name)
+
+
 class ChatBean:
 
     def __init__(self):
         self.chat_bean_data = dict()
         self.chat_bean_data.setdefault(JSON_KEY_CHAT_PIC_IMG, None)
+        self.chat_bean_data.setdefault(JSON_KEY_CHAT_TYPE, TypeBean())
 
     def parse_json(self, json_data):
         data: dict = json.loads(json_data)
@@ -45,6 +78,11 @@ class ChatBean:
                 user_bean.parse_dict(data[key])
                 self.chat_bean_data[key] = user_bean
                 continue
+            if key == JSON_KEY_CHAT_TYPE:
+                type_bean: TypeBean = TypeBean()
+                type_bean.parse_dict(data[key])
+                self.chat_bean_data[key] = type_bean
+                continue
             self.chat_bean_data[key] = data[key]
 
     def to_json(self):
@@ -52,6 +90,9 @@ class ChatBean:
         for key in self.chat_bean_data.keys():
             if key == JSON_KEY_CHAT_BELONG_USER:
                 json_dict[key] = self.chat_bean_data[key].user_bean_data
+                continue
+            if key == JSON_KEY_CHAT_TYPE:
+                json_dict[key] = self.chat_bean_data[key].type_bean_data
                 continue
             json_dict[key] = self.chat_bean_data[key]
         return json.dumps(json_dict, ensure_ascii=False)
@@ -74,6 +115,9 @@ class ChatBean:
     def get_comment_count(self):
         return self.chat_bean_data[JSON_KEY_CHAT_COMMENT_COUNT]
 
+    def get_type_bean(self):
+        return self.chat_bean_data[JSON_KEY_CHAT_TYPE]
+
     def set_chat_id(self, chat_id):
         self.chat_bean_data[JSON_KEY_CHAT_ID] = chat_id
 
@@ -91,6 +135,9 @@ class ChatBean:
 
     def set_comment_count(self, comment_count):
         self.chat_bean_data[JSON_KEY_CHAT_COMMENT_COUNT] = comment_count
+
+    def set_type_bean(self, type_bean):
+        self.chat_bean_data[JSON_KEY_CHAT_TYPE] = type_bean
 
 
 class CommentBean:

@@ -38,12 +38,21 @@ def deal_request_history_chat(client, database, body):
         chat_img = chat_img_tuple[0] if len(chat_img_tuple) == 1 else None
         cursor.execute('select like_count from %s where id = %d' % (TABLE_NAME_CHAT, cur_chat_id))
         chat_like_count = int(cursor.fetchone()[0])
+
         comment_count = cursor.execute('select * from %s where chat_id = %d' % (TABLE_NAME_COMM, cur_chat_id))
         cursor.execute('select * from %s where id = %d' % (TABLE_NAME_USER, user_id))
         user_info_tuple = cursor.fetchone()
-
         user_bean.set_user_id(user_id)
         user_bean.set_user_name(user_info_tuple[1])
+
+        cursor.execute('select type_id from %s where id = %d' % (TABLE_NAME_CHAT, cur_chat_id))
+        chat_type_id = cursor.fetchone()[0]
+        type_bean = TypeBean()
+        if chat_type_id:
+            cursor.execute('select * from %s where id = %d' % (TABLE_NAME_TYPE, chat_type_id))
+            type_id, type_name = cursor.fetchone()
+            type_bean.set_type_id(int(type_id))
+            type_bean.set_type_name(type_name)
 
         chat_bean.set_chat_id(cur_chat_id)
         chat_bean.set_chat_content_text(chat_content_text)
@@ -51,6 +60,7 @@ def deal_request_history_chat(client, database, body):
         chat_bean.set_chat_img(chat_img)
         chat_bean.set_like_count(chat_like_count)
         chat_bean.set_comment_count(int(comment_count))
+        chat_bean.set_type_bean(type_bean)
 
         send_data += chat_bean.to_json() + ","
 
